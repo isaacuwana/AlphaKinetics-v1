@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robust Parameter Estimation - AlphaKinetics Documentation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/documentation.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        if (typeof window !== 'undefined' && typeof window.CONFIG === 'undefined') {
+            window.CONFIG = { API_BASE_URL: window.location.origin, DEFAULT_VALUES: { MIN_CONC: 0.01, MAX_CONC: 10.0, MAX_TIME: 100 } };
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Robust Parameter Estimation</h1>
+        <p class="subtitle">Advanced statistical methods for parameter inference and uncertainty quantification</p>
+    </header>
+
+    <nav class="doc-nav">
+        <ul>
+            <li><a href="#statistical-framework">Statistical Framework</a></li>
+            <li><a href="#optimization-methods">Optimization Methods</a></li>
+            <li><a href="#uncertainty-quantification">Uncertainty Quantification</a></li>
+            <li><a href="#bayesian-inference">Bayesian Inference</a></li>
+            <li><a href="#practical-implementation">Practical Implementation</a></li>
+            <li><a href="#advanced-topics">Advanced Topics</a></li>
+        </ul>
+    </nav>
+
+    <main class="documentation">
+        <section id="statistical-framework">
+            <h2>Statistical Framework</h2>
+            
+            <h3>Maximum Likelihood Estimation</h3>
+            <div class="math-block">
+                <p>For a set of observations \(\mathbf{Y}\) and parameters \(\boldsymbol{\theta}\), the likelihood function is:</p>
+                \[
+                L(\boldsymbol{\theta}|\mathbf{Y}) = \prod_{i=1}^n p(y_i|\boldsymbol{\theta})
+                \]
+                <p>The log-likelihood function for normally distributed measurement errors:</p>
+                \[
+                \ell(\boldsymbol{\theta}) = -\frac{n}{2}\ln(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^n [y_i - f(t_i,\boldsymbol{\theta})]^2
+                \]
+            </div>
+
+            <h3>Error Models</h3>
+            <div class="math-block">
+                <p>Comprehensive error structure incorporating multiple sources:</p>
+                \[
+                y_i = f(t_i,\boldsymbol{\theta}) + \sqrt{(\sigma_{\text{abs}})^2 + (\sigma_{\text{rel}}f(t_i,\boldsymbol{\theta}))^2}\,\epsilon_i
+                \]
+                where:
+                \[
+                \begin{align*}
+                \sigma_{\text{abs}} &: \text{absolute error component} \\
+                \sigma_{\text{rel}} &: \text{relative error component} \\
+                \epsilon_i &\sim \mathcal{N}(0,1)
+                \end{align*}
+                \]
+            </div>
+        </section>
+
+        <section id="optimization-methods">
+            <h2>Optimization Methods</h2>
+            
+            <h3>Multi-Start Strategy</h3>
+            <div class="math-block">
+                <p>Latin Hypercube Sampling for initial points:</p>
+                \[
+                \theta_{ij}^{(0)} = \theta_j^L + \frac{k + u_{ij}}{M}(\theta_j^U - \theta_j^L)
+                \]
+                where:
+                \[
+                \begin{align*}
+                k &= 0,\ldots,M-1 \text{ (stratification index)} \\
+                u_{ij} &\sim \mathcal{U}(0,1) \text{ (random perturbation)} \\
+                \theta_j^L, \theta_j^U &: \text{parameter bounds}
+                \end{align*}
+                \]
+            </div>
+
+            <h3>Trust Region Methods</h3>
+            <div class="math-block">
+                <p>Quadratic subproblem at each iteration:</p>
+                \[
+                \min_{\mathbf{p}} \left\{ \frac{1}{2}\mathbf{p}^T\mathbf{B}_k\mathbf{p} + \mathbf{g}_k^T\mathbf{p} : \|\mathbf{p}\| \leq \Delta_k \right\}
+                \]
+                where:
+                \[
+                \begin{align*}
+                \mathbf{B}_k &: \text{Hessian approximation} \\
+                \mathbf{g}_k &: \text{gradient} \\
+                \Delta_k &: \text{trust region radius}
+                \end{align*}
+                \]
+            </div>
+
+            <h3>Regularization</h3>
+            <div class="math-block">
+                <p>Tikhonov regularization with parameter priors:</p>
+                \[
+                \mathcal{J}(\boldsymbol{\theta}) = \sum_{i=1}^n [y_i - f(t_i,\boldsymbol{\theta})]^2 + \lambda\|\boldsymbol{\theta} - \boldsymbol{\theta}_{\text{prior}}\|^2
+                \]
+            </div>
+        </section>
+
+        <section id="uncertainty-quantification">
+            <h2>Uncertainty Quantification</h2>
+            
+            <h3>Profile Likelihood</h3>
+            <div class="math-block">
+                <p>Profile likelihood for parameter \(\theta_j\):</p>
+                \[
+                PL(\theta_j) = \max_{\theta_{i\neq j}} L(\boldsymbol{\theta})
+                \]
+                <p>Confidence intervals based on likelihood ratio test:</p>
+                \[
+                CI_{\alpha} = \{\theta_j : -2\ln\left(\frac{PL(\theta_j)}{L(\hat{\boldsymbol{\theta}})}\right) \leq \chi^2_{1,\alpha}\}
+                \]
+            </div>
+
+            <h3>Bootstrap Methods</h3>
+            <div class="math-block">
+                <p>Parametric bootstrap for confidence intervals:</p>
+                \[
+                y_i^* = f(t_i,\hat{\boldsymbol{\theta}}) + \hat{\sigma}\epsilon_i^*
+                \]
+                <p>Bootstrap percentile intervals:</p>
+                \[
+                CI_{\alpha} = [\hat{\theta}_j^{*(\alpha/2)}, \hat{\theta}_j^{*(1-\alpha/2)}]
+                \]
+            </div>
+
+            <h3>Fisher Information Matrix</h3>
+            <div class="math-block">
+                <p>Observed Fisher Information:</p>
+                \[
+                \mathbf{I}(\hat{\boldsymbol{\theta}}) = -\left.\frac{\partial^2\ell(\boldsymbol{\theta})}{\partial\boldsymbol{\theta}\partial\boldsymbol{\theta}^T}\right|_{\boldsymbol{\theta}=\hat{\boldsymbol{\theta}}}
+                \]
+                <p>Asymptotic covariance matrix:</p>
+                \[
+                \text{Cov}(\hat{\boldsymbol{\theta}}) \approx \mathbf{I}^{-1}(\hat{\boldsymbol{\theta}})
+                \]
+            </div>
+        </section>
+
+        <section id="bayesian-inference">
+            <h2>Bayesian Inference</h2>
+            
+            <h3>Posterior Distribution</h3>
+            <div class="math-block">
+                <p>Bayes' theorem for parameter inference:</p>
+                \[
+                p(\boldsymbol{\theta}|\mathbf{Y}) \propto p(\mathbf{Y}|\boldsymbol{\theta})p(\boldsymbol{\theta})
+                \]
+            </div>
+
+            <h3>MCMC Sampling</h3>
+            <div class="math-block">
+                <p>Metropolis-Hastings acceptance probability:</p>
+                \[
+                \alpha = \min\left\{1, \frac{p(\boldsymbol{\theta}'|\mathbf{Y})q(\boldsymbol{\theta}|\boldsymbol{\theta}')}{p(\boldsymbol{\theta}|\mathbf{Y})q(\boldsymbol{\theta}'|\boldsymbol{\theta})}\right\}
+                \]
+            </div>
+
+            <h3>Hamiltonian Monte Carlo</h3>
+            <div class="math-block">
+                <p>Hamiltonian dynamics:</p>
+                \[
+                \begin{align*}
+                \frac{d\boldsymbol{\theta}}{dt} &= \mathbf{M}^{-1}\mathbf{p} \\
+                \frac{d\mathbf{p}}{dt} &= \nabla_{\boldsymbol{\theta}}\log p(\boldsymbol{\theta}|\mathbf{Y})
+                \end{align*}
+                \]
+                where \(\mathbf{M}\) is the mass matrix.
+            </div>
+        </section>
+
+        <section id="practical-implementation">
+            <h2>Practical Implementation</h2>
+            
+            <h3>Multi-Chain Analysis</h3>
+            <div class="code-block">
+                <pre><code>from alphakinetics.models import RobustParameterEstimator
+
+estimator = RobustParameterEstimator(
+    n_chains=4,
+    warmup=1000,
+    samples=2000,
+    adaptation_delta=0.8,
+    max_tree_depth=10
+)
+
+# Run parallel chains
+results = estimator.sample(
+    model=reaction_model,
+    data=experimental_data,
+    init_strategy='random',
+    random_seed=42
+)</code></pre>
+            </div>
+
+            <h3>Convergence Diagnostics</h3>
+            <div class="code-block">
+                <pre><code># Calculate Gelman-Rubin statistic
+r_hat = estimator.gelman_rubin(results)
+
+# Effective sample size
+n_eff = estimator.effective_sample_size(results)
+
+# Auto-correlation analysis
+acf = estimator.autocorrelation(results)</code></pre>
+            </div>
+        </section>
+
+        <section id="advanced-topics">
+            <h2>Advanced Topics</h2>
+
+            <h3>Model Selection</h3>
+            <div class="math-block">
+                <p>DIC (Deviance Information Criterion):</p>
+                \[
+                \text{DIC} = -2\mathbb{E}_{\boldsymbol{\theta}}[\log p(\mathbf{Y}|\boldsymbol{\theta})] + 2p_D
+                \]
+                where \(p_D\) is the effective number of parameters.
+            </div>
+
+            <h3>Cross-Validation</h3>
+            <div class="code-block">
+                <pre><code># K-fold cross-validation
+cv_results = estimator.cross_validate(
+    model=reaction_model,
+    data=experimental_data,
+    k_folds=5,
+    scoring='neg_log_likelihood'
+)</code></pre>
+            </div>
+
+            <h3>Posterior Predictive Checks</h3>
+            <div class="code-block">
+                <pre><code># Generate posterior predictive samples
+pred_samples = estimator.posterior_predictive(
+    model=reaction_model,
+    posterior_samples=results,
+    n_predictions=1000
+)
+
+# Calculate posterior predictive p-values
+ppp_values = estimator.posterior_predictive_pvalue(
+    observed_data=experimental_data,
+    predicted_samples=pred_samples,
+    test_statistic='chi_square'
+)</code></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>AlphaKinetics Documentation | <a href="index.html">Back to Home</a></p>
+    </footer>
+    <script defer src="js/main.js"></script>
+</body>
+</html>

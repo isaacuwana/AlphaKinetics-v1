@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaKinetics - Design Studio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/documentation.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-drafting-compass"></i> Design Studio</h1>
+            <p>A dedicated space for creating, analyzing, and comparing experimental designs.</p>
+        </header>
+
+        <div class="studio-layout">
+            <div class="studio-controls">
+                <h3><i class="fas fa-sliders-h"></i> Design Parameters</h3>
+                <div class="control-group">
+                    <label for="studio-min-conc">Min Concentration (mM)</label>
+                    <input type="number" id="studio-min-conc" class="form-control" value="0.01" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label for="studio-max-conc">Max Concentration (mM)</label>
+                    <input type="number" id="studio-max-conc" class="form-control" value="10.0" step="1">
+                </div>
+                <div class="control-group">
+                    <label for="studio-max-time">Max Duration (h)</label>
+                    <input type="number" id="studio-max-time" class="form-control" value="100" step="10">
+                </div>
+                <div class="control-group">
+                    <label for="studio-n-designs">Number of Candidates</label>
+                    <input type="number" id="studio-n-designs" class="form-control" value="8" step="1">
+                </div>
+                <button id="studio-generate-btn" class="btn btn-primary btn-block"><i class="fas fa-magic"></i> Generate Designs</button>
+            </div>
+
+            <div class="studio-main">
+                <div id="studio-workspace">
+                    <div class="empty-state">
+                        <i class="fas fa-flask-vial"></i>
+                        <h4>Welcome to the Design Studio</h4>
+                        <p>Use the controls on the left to generate experimental design candidates.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="studio-sidebar">
+                <h3><i class="fas fa-chart-pie"></i> Design Analytics</h3>
+                <div id="studio-analytics">
+                    <p class="text-muted">Analytics will appear here once designs are generated.</p>
+                </div>
+                <hr>
+                <h3><i class="fas fa-history"></i> History</h3>
+                <div id="studio-history">
+                    <p class="text-muted">No actions yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateBtn = document.getElementById('studio-generate-btn');
+            generateBtn.addEventListener('click', generateStudioDesigns);
+        });
+
+        async function generateStudioDesigns() {
+            const workspace = document.getElementById('studio-workspace');
+            workspace.innerHTML = `<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Generating...</p></div>`;
+
+            const constraints = {
+                min_conc: parseFloat(document.getElementById('studio-min-conc').value),
+                max_conc: parseFloat(document.getElementById('studio-max-conc').value),
+                max_time: parseInt(document.getElementById('studio-max-time').value)
+            };
+            const n_designs = parseInt(document.getElementById('studio-n-designs').value);
+
+            try {
+                const response = await fetch('/api/design/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        constraints: constraints,
+                        n_designs: n_designs,
+                        network: null // In a real scenario, you might pass the current network
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayStudioDesigns(result.designs);
+                updateStudioAnalytics(result.designs);
+                logStudioAction('Generated new designs.');
+
+            } catch (error) {
+                workspace.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to generate designs.</p><small>${error.message}</small></div>`;
+                console.error('Error generating studio designs:', error);
+            }
+        }
+
+        function displayStudioDesigns(designs) {
+            const workspace = document.getElementById('studio-workspace');
+            workspace.innerHTML = `
+                <h3>Generated Candidates</h3>
+                <div class="studio-grid">
+                    ${designs.map(d => `
+                        <div class="candidate-card">
+                            <div class="card-header">
+                                <strong>${d.type}</strong>
+                                <span class="priority ${d.priority.toLowerCase()}">${d.priority}</span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Initial Conc:</strong> ${d.initialConc} mM</p>
+                                <p><strong>Duration:</strong> ${d.duration}h</p>
+                                <p><strong>Info Gain:</strong> ${d.infoGain}</p>
+                                <p><strong>Feasibility:</strong> ${d.feasibility}</p>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn btn-sm btn-secondary"><i class="fas fa-copy"></i> Copy</button>
+                                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Discard</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateStudioAnalytics(designs) {
+            const analyticsContainer = document.getElementById('studio-analytics');
+            const totalInfoGain = designs.reduce((sum, d) => sum + d.infoGain, 0);
+            const avgFeasibility = designs.reduce((sum, d) => sum + parseFloat(d.feasibility), 0) / designs.length;
+
+            analyticsContainer.innerHTML = `
+                <div class="analytic-item">
+                    <span>Total Info Gain</span>
+                    <strong>${totalInfoGain.toFixed(2)}</strong>
+                </div>
+                <div class="analytic-item">
+                    <span>Avg. Feasibility</span>
+                    <strong>${avgFeasibility.toFixed(1)}%</strong>
+                </div>
+                <div class="analytic-item">
+                    <span>High Priority</span>
+                    <strong>${designs.filter(d => d.priority === 'High').length}</strong>
+                </div>
+            `;
+        }
+
+        function logStudioAction(message) {
+            const historyContainer = document.getElementById('studio-history');
+            const entry = document.createElement('div');
+            entry.className = 'history-item';
+            entry.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            if (historyContainer.firstChild && historyContainer.firstChild.nodeName === 'P') {
+                historyContainer.innerHTML = '';
+            }
+            historyContainer.prepend(entry);
+        }
+    </script>
+</body>
+</html>

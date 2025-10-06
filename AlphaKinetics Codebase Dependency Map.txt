@@ -1,0 +1,123 @@
+I'll create a detailed dependency map of the AlphaKinetics codebase using Markdown formatting and ASCII art for visualization.
+
+# AlphaKinetics Codebase Dependency Map
+
+```
+AlphaKinetics/
+├── Frontend (Web Interface)
+│   ├── docs/
+│   │   ├── index.html ────────────┐
+│   │   ├── js/                   │
+│   │   │   └── main.js ←─────────┤
+│   │   └── css/                  │
+│   │       └── style.css ────────┘
+│   │
+├── Backend (Server)
+│   └── server.py ◄──────────────────┐
+│                                    │
+├── Core Components                  │
+│   └── src/alphakinetics/          │
+│       ├── models/                  │
+│       │   ├── types.py ◄──────────┼── Used by all modules
+│       │   ├── simulator.py ◄───────┼── Core simulation engine
+│       │   └── parameter_estimation.py
+│       │
+│       ├── search/
+│       │   └── graph_generator.py ◄─┼── Network topology search
+│       │
+│       ├── identifiability/
+│       │   └── fisher_info.py ◄─────┼── Parameter analysis
+│       │
+│       ├── active/
+│       │   └── acquisition.py ◄─────┼── Experimental design
+│       │
+│       ├── data/
+│       │   └── synthetic.py ◄───────┼── Data generation
+│       │
+│       └── workflows/
+│           └── workflow.py ◄────────┼── High-level pipelines
+```
+
+## Data Flow Diagram
+
+```
+┌────────────────┐     HTTP/JSON     ┌─────────────┐
+│  Web Frontend  │<----------------->│   server.py  │
+└────────────────┘                   └─────────────┘
+                                           │
+                                           ▼
+┌────────────────────────────────────────────────────────┐
+│                   Core Components                       │
+│                                                        │
+│   ┌─────────────┐      ┌───────────────┐              │
+│   │   models    │<---->│   workflows   │              │
+│   └─────────────┘      └───────────────┘              │
+│         │                     │                        │
+│         ▼                     ▼                        │
+│   ┌─────────────┐      ┌───────────────┐              │
+│   │   search    │<---->│ identifiability│             │
+│   └─────────────┘      └───────────────┘              │
+│         │                     │                        │
+│         ▼                     ▼                        │
+│   ┌─────────────┐      ┌───────────────┐              │
+│   │   active    │<---->│     data      │              │
+│   └─────────────┘      └───────────────┘              │
+└────────────────────────────────────────────────────────┘
+```
+
+## Key Dependencies
+
+1. **Frontend Components**:
+   - index.html ← Depends on main.js and style.css
+   - main.js ← Makes API calls to server.py
+
+2. **Backend Server**:
+   - server.py ← Depends on all core components
+   - Provides REST API endpoints for frontend
+
+3. **Core Components Dependencies**:
+
+   ```
+   types.py (Base Types)
+      ↑
+      └── simulator.py
+          ↑
+          ├── parameter_estimation.py
+          │   ↑
+          │   └── fisher_info.py
+          │       ↑
+          │       └── acquisition.py
+          │
+          └── graph_generator.py
+              ↑
+              └── workflow.py (Orchestrates all components)
+   ```
+
+4. **Data Flow Path**:
+   ```
+   User Interface → server.py → workflow.py → Core Components
+   ↑                                               │
+   └───────────────────────────────────────────────┘
+   ```
+
+## Key Interactions
+
+1. **Data Processing Pipeline**:
+   ```
+   data/synthetic.py → models/simulator.py → parameter_estimation.py 
+   → identifiability/fisher_info.py → active/acquisition.py
+   ```
+
+2. **Network Analysis Pipeline**:
+   ```
+   search/graph_generator.py → models/simulator.py 
+   → parameter_estimation.py → identifiability/fisher_info.py
+   ```
+
+3. **Experimental Design Pipeline**:
+   ```
+   active/acquisition.py ← identifiability/fisher_info.py 
+   ← models/simulator.py ← data/synthetic.py
+   ```
+
+Would you like me to elaborate on any specific component or interaction?

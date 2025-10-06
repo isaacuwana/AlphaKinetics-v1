@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Network Simulation - AlphaKinetics Documentation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/documentation.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        if (typeof window !== 'undefined' && typeof window.CONFIG === 'undefined') {
+            window.CONFIG = { API_BASE_URL: window.location.origin, DEFAULT_VALUES: { MIN_CONC: 0.01, MAX_CONC: 10.0, MAX_TIME: 100 } };
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Advanced Network Simulation</h1>
+        <p class="subtitle">High-performance ODE simulation engine with advanced numerical methods</p>
+    </header>
+
+    <nav class="doc-nav">
+        <ul>
+            <li><a href="#mathematical-foundations">Mathematical Foundations</a></li>
+            <li><a href="#numerical-methods">Numerical Methods</a></li>
+            <li><a href="#rate-laws">Rate Laws</a></li>
+            <li><a href="#adaptive-stepping">Adaptive Time Stepping</a></li>
+            <li><a href="#stability-analysis">Stability Analysis</a></li>
+            <li><a href="#parallel-processing">Parallel Processing</a></li>
+            <li><a href="#implementation">Implementation</a></li>
+            <li><a href="#advanced-usage">Advanced Usage</a></li>
+        </ul>
+    </nav>
+
+    <main class="documentation">
+        <section id="mathematical-foundations">
+            <h2>Mathematical Foundations</h2>
+            <p>The simulation engine is built on rigorous mathematical foundations for solving systems of ordinary differential equations (ODEs) that describe chemical reaction networks.</p>
+            
+            <h3>General Form</h3>
+            <div class="math-block">
+                <p>A chemical reaction network with \(n\) species and \(m\) reactions is described by the system:</p>
+                \[
+                \frac{d\mathbf{x}}{dt} = \mathbf{S}\mathbf{v}(\mathbf{x}, \mathbf{k})
+                \]
+                where:
+                \[
+                \begin{align*}
+                \mathbf{x} &\in \mathbb{R}^n &\text{(Species concentrations)} \\
+                \mathbf{S} &\in \mathbb{R}^{n \times m} &\text{(Stoichiometric matrix)} \\
+                \mathbf{v} &: \mathbb{R}^n \times \mathbb{R}^p \to \mathbb{R}^m &\text{(Rate laws)} \\
+                \mathbf{k} &\in \mathbb{R}^p &\text{(Kinetic parameters)}
+                \end{align*}
+                \]
+            </div>
+
+            <h3>Conservation Laws</h3>
+            <div class="math-block">
+                <p>Conservation relationships are identified through analysis of the left null space of \(\mathbf{S}\):</p>
+                \[
+                \mathbf{M}\mathbf{S} = \mathbf{0} \quad \text{where} \quad \mathbf{M} \in \mathbb{R}^{r \times n}
+                \]
+                <p>This leads to \(r\) conserved quantities:</p>
+                \[
+                \frac{d}{dt}(\mathbf{M}\mathbf{x}) = \mathbf{M}\frac{d\mathbf{x}}{dt} = \mathbf{M}\mathbf{S}\mathbf{v} = \mathbf{0}
+                \]
+            </div>
+        </section>
+
+        <section id="numerical-methods">
+            <h2>Numerical Methods</h2>
+            
+            <h3>Multi-step Methods</h3>
+            <p>The simulation engine implements several high-order methods for numerical integration:</p>
+            
+            <h4>Backward Differentiation Formula (BDF)</h4>
+            <div class="math-block">
+                <p>For stiff systems, BDF methods of orders 1-5 are employed:</p>
+                \[
+                \sum_{i=0}^k \alpha_i \mathbf{x}_{n+i} = h\beta_k \mathbf{f}(\mathbf{x}_{n+k}, t_{n+k})
+                \]
+                <p>where \(\alpha_i\) and \(\beta_k\) are method coefficients, and \(h\) is the step size.</p>
+            </div>
+
+            <h4>Adams-Moulton Methods</h4>
+            <div class="math-block">
+                <p>For non-stiff systems, implicit Adams methods provide high accuracy:</p>
+                \[
+                \mathbf{x}_{n+1} = \mathbf{x}_n + h\sum_{i=0}^k \beta_i \mathbf{f}(\mathbf{x}_{n+1-i}, t_{n+1-i})
+                \]
+            </div>
+        </section>
+
+        <section id="rate-laws">
+            <h2>Rate Laws</h2>
+            <p>The engine supports multiple rate law formulations for different types of reactions:</p>
+
+            <h3>Mass Action Kinetics</h3>
+            <div class="math-block">
+                \[
+                v = k\prod_{i=1}^n [X_i]^{\alpha_i}
+                \]
+                <p>where \(\alpha_i\) are stoichiometric coefficients.</p>
+            </div>
+
+            <h3>Michaelis-Menten Kinetics</h3>
+            <div class="math-block">
+                \[
+                v = \frac{V_{\text{max}}[S]}{K_M + [S]}
+                \]
+                <p>with mechanistic extension for multiple substrates:</p>
+                \[
+                v = \frac{V_{\text{max}}[S_1][S_2]}{K_{M1}K_{M2} + K_{M1}[S_2] + K_{M2}[S_1] + [S_1][S_2]}
+                \]
+            </div>
+
+            <h3>Hill Equation</h3>
+            <div class="math-block">
+                \[
+                v = \frac{V_{\text{max}}[S]^n}{K^n + [S]^n}
+                \]
+                <p>For cooperative binding with Hill coefficient \(n\).</p>
+            </div>
+        </section>
+
+        <section id="adaptive-stepping">
+            <h2>Adaptive Time Stepping</h2>
+            
+            <h3>Error Control</h3>
+            <div class="math-block">
+                <p>Local error is estimated using embedded methods:</p>
+                \[
+                \text{err}_i = \left|\frac{x_i^{(p+1)} - x_i^{(p)}}{\text{atol}_i + \text{rtol}_i|x_i|}\right|
+                \]
+                <p>Step size adjustment:</p>
+                \[
+                h_{\text{new}} = h_{\text{old}}\left(\frac{\epsilon}{\text{err}}\right)^{1/(p+1)}
+                \]
+                where:
+                \[
+                \begin{align*}
+                \epsilon &: \text{desired accuracy} \\
+                p &: \text{method order} \\
+                \text{atol}_i, \text{rtol}_i &: \text{absolute and relative tolerances}
+                \end{align*}
+                \]
+            </div>
+
+            <h3>PI Step Size Control</h3>
+            <div class="math-block">
+                <p>Advanced PI controller for smooth step size transitions:</p>
+                \[
+                h_{n+1} = h_n\left(\frac{\epsilon}{\text{err}_n}\right)^{0.6/p}\left(\frac{\text{err}_{n-1}}{\text{err}_n}\right)^{0.2/p}
+                \]
+            </div>
+        </section>
+
+        <section id="stability-analysis">
+            <h2>Stability Analysis</h2>
+            
+            <h3>Linear Stability</h3>
+            <div class="math-block">
+                <p>Jacobian analysis at steady states:</p>
+                \[
+                \mathbf{J} = \frac{\partial}{\partial \mathbf{x}}(\mathbf{S}\mathbf{v}) = \mathbf{S}\frac{\partial \mathbf{v}}{\partial \mathbf{x}}
+                \]
+                <p>Stability criteria:</p>
+                \[
+                \text{Re}(\lambda_i) < 0 \quad \forall \lambda_i \in \text{spec}(\mathbf{J})
+                \]
+            </div>
+
+            <h3>Stiffness Detection</h3>
+            <div class="math-block">
+                <p>Stiffness ratio computation:</p>
+                \[
+                R = \frac{\max_i|\lambda_i|}{\min_i|\lambda_i|}
+                \]
+                <p>Method switching criteria based on:</p>
+                \[
+                h\max_i|\lambda_i| > \theta
+                \]
+                where \(\theta\) is a threshold parameter.
+            </div>
+        </section>
+
+        <section id="parallel-processing">
+            <h2>Parallel Processing</h2>
+            
+            <h3>Workload Distribution</h3>
+            <div class="code-block">
+                <pre><code>from alphakinetics.models.simulator import parallel_simulate
+
+# Parallel simulation with multiple parameter sets
+results = parallel_simulate(
+    network,
+    parameter_sets,
+    n_workers=8,
+    chunk_size='auto'
+)</code></pre>
+            </div>
+
+            <h3>Parallel Algorithms</h3>
+            <ul>
+                <li>Multiple Shooting Method for boundary value problems</li>
+                <li>Parallel-in-time integration (Parareal algorithm)</li>
+                <li>Parallel evaluation of right-hand side for large systems</li>
+                <li>Distributed parameter sweeps for sensitivity analysis</li>
+            </ul>
+        </section>
+
+        <section id="implementation">
+            <h2>Implementation Details</h2>
+            
+            <h3>Core Components</h3>
+            <div class="code-block">
+                <pre><code>from alphakinetics.models import (
+    ReactionNetwork,
+    simulate_network,
+    RateType,
+    KineticParameters
+)</code></pre>
+            </div>
+
+            <h3>Advanced Configuration</h3>
+            <div class="code-block">
+                <pre><code># Configure advanced simulation parameters
+simulation = ReactionNetwork(
+    solver_options={
+        'method': 'BDF',
+        'order': 5,
+        'atol': 1e-8,
+        'rtol': 1e-6,
+        'max_step': 0.1,
+        'stability_check': True,
+        'stiffness_detection': True
+    },
+    parallel_options={
+        'n_workers': 8,
+        'chunk_size': 100,
+        'scheduling': 'dynamic'
+    }
+)</code></pre>
+            </div>
+        </section>
+
+        <section id="advanced-usage">
+            <h2>Advanced Usage Examples</h2>
+
+            <h3>Complex Reaction Network</h3>
+            <div class="code-block">
+                <pre><code>import numpy as np
+from alphakinetics.models import ReactionNetwork, RateType
+
+# Define a complex reaction network
+network = ReactionNetwork()
+
+# Add species
+network.add_species(['E', 'S', 'ES', 'P', 'I'])
+
+# Add reactions with different rate laws
+network.add_reaction(
+    reactants={'E': 1, 'S': 1},
+    products={'ES': 1},
+    rate_law=RateType.MASS_ACTION,
+    parameters={'k': 1.0}
+)
+
+network.add_reaction(
+    reactants={'ES': 1},
+    products={'E': 1, 'P': 1},
+    rate_law=RateType.MICHAELIS_MENTEN,
+    parameters={'kcat': 0.1, 'Km': 0.05}
+)
+
+# Configure advanced simulation
+result = network.simulate(
+    tspan=(0, 100),
+    y0={'E': 1.0, 'S': 5.0, 'ES': 0, 'P': 0, 'I': 1.0},
+    solver='BDF',
+    events=lambda t, y: y['S'] < 0.1  # Event detection
+)</code></pre>
+            </div>
+
+            <h3>Stability Analysis</h3>
+            <div class="code-block">
+                <pre><code># Perform stability analysis
+from alphakinetics.analysis import analyze_stability
+
+stability = analyze_stability(
+    network,
+    steady_state,
+    parameter_ranges={
+        'k1': (0.1, 10.0),
+        'k2': (0.01, 1.0)
+    },
+    method='continuation'
+)</code></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>AlphaKinetics Documentation | <a href="index.html">Back to Home</a></p>
+    </footer>
+    <script defer src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "log_level": "INFO",
+  "simulation": {
+    "min_concentration": 0.001,
+    "max_concentration": 10.0,
+    "default_t_span": [0, 100],
+    "default_time_points": 51,
+    "default_rtol": 1e-8,
+    "default_atol": 1e-10
+  },
+  "noise_model": {
+    "base_noise_level": 0.05,
+    "signal_dependent_noise": true
+  },
+  "network_search": {
+    "max_species": 10,
+    "max_reactions": 20,
+    "max_networks": 100
+  },
+  "parameter_estimation": {
+    "max_iterations": 1000,
+    "convergence_tolerance": 1e-6
+  },
+  "experimental_design": {
+    "n_suggested_experiments": 5,
+    "n_design_candidates": 50,
+    "n_best_candidates": 10,
+    "min_perturbation_factor": 0.1,
+    "max_perturbation_factor": 10.0,
+    "min_duration": 1.0,
+    "max_duration": 100.0,
+    "min_time_points": 8,
+    "max_time_points": 50,
+    "scaling_factors": [0.1, 0.5, 1.0, 2.0, 5.0],
+    "systematic_levels": [0.1, 1.0, 2.0],
+    "minimum_acquisition_score": -1000.0,
+    "minimum_information_score": -1000.0,
+    "max_condition_number": 1000000.0
+  }
+}

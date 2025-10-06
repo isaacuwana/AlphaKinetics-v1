@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimal Experimental Design - AlphaKinetics Documentation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/documentation.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Optimal Experimental Design in AlphaKinetics</h1>
+    <script>
+        if (typeof window !== 'undefined' && typeof window.CONFIG === 'undefined') {
+            window.CONFIG = { API_BASE_URL: window.location.origin, DEFAULT_VALUES: { MIN_CONC: 0.01, MAX_CONC: 10.0, MAX_TIME: 100 } };
+        }
+    </script>
+        
+        <section id="introduction">
+            <h2>Introduction to Information-Theoretic Experimental Design</h2>
+            <p>
+                AlphaKinetics implements state-of-the-art methods for optimal experimental design (OED) in chemical kinetics, 
+                focusing on maximizing information gain while minimizing experimental costs. The framework integrates 
+                information theory, active learning, and multi-objective optimization to suggest experiments that efficiently 
+                discriminate between competing reaction mechanisms and precisely estimate kinetic parameters.
+            </p>
+        </section>
+
+        <section id="theoretical-foundations">
+            <h2>Theoretical Foundations</h2>
+            
+            <h3>Information-Theoretic Framework</h3>
+            <p>
+                The core of our approach relies on quantifying the expected information gain from potential experiments using 
+                measures derived from information theory:
+            </p>
+            <div class="math-block">
+                \[
+                \text{EIG}(e) = \mathbb{E}_{y|e}\left[\text{KL}(p(\theta|y,e) \| p(\theta))\right]
+                \]
+            </p>
+            <p>where:</p>
+            <ul>
+                <li>\(e\) represents experimental conditions</li>
+                <li>\(y\) represents potential observations</li>
+                <li>\(p(\theta|y,e)\) is the posterior parameter distribution</li>
+                <li>\(p(\theta)\) is the prior parameter distribution</li>
+                <li>\(\text{KL}\) denotes the Kullback-Leibler divergence</li>
+            </ul>
+
+            <h3>Bayesian Optimal Design</h3>
+            <p>
+                We extend the classical Bayesian D-optimal design criterion to incorporate model uncertainty:
+            </p>
+            <div class="math-block">
+                \[
+                \Psi(e) = \mathbb{E}_{M}\left[\log\det(\mathcal{I}(e,\theta_M))\right]
+                \]
+            </div>
+            <p>
+                where \(\mathcal{I}(e,\theta_M)\) is the Fisher Information Matrix for model M under experimental 
+                conditions e.
+            </p>
+        </section>
+
+        <section id="active-learning">
+            <h2>Active Learning Strategies</h2>
+            
+            <h3>Sequential Design</h3>
+            <p>
+                AlphaKinetics implements several active learning strategies for sequential experimental design:
+            </p>
+            <ul>
+                <li><strong>Uncertainty Sampling:</strong> Selects experiments in regions of high parameter uncertainty</li>
+                <li><strong>Expected Model Change:</strong> Maximizes the expected change in model predictions</li>
+                <li><strong>Entropy Reduction:</strong> Targets maximum reduction in parameter distribution entropy</li>
+            </ul>
+
+            <h3>Batch Optimization</h3>
+            <p>
+                For efficient experimentation, we support batch design optimization using:
+            </p>
+            <div class="math-block">
+                \[
+                e^*_{1:b} = \argmax_{e_1,\ldots,e_b} \sum_{i=1}^b \text{EIG}(e_i|\mathcal{D} \cup \{e_1,\ldots,e_{i-1}\})
+                \]
+            </div>
+            <p>
+                This formulation accounts for the joint information content of multiple experiments while considering 
+                experimental constraints and resources.
+            </p>
+        </section>
+
+        <section id="multi-objective">
+            <h2>Multi-Objective Design Optimization</h2>
+            
+            <h3>Competing Objectives</h3>
+            <p>
+                Our framework handles multiple competing objectives in experimental design:
+            </p>
+            <ul>
+                <li>Information gain (parameter precision)</li>
+                <li>Model discrimination power</li>
+                <li>Experimental cost and complexity</li>
+                <li>Resource constraints</li>
+            </ul>
+
+            <h3>Pareto Optimization</h3>
+            <p>
+                We employ multi-objective optimization to find Pareto-optimal experimental designs:
+            </p>
+            <div class="math-block">
+                \[
+                \min_e \begin{bmatrix} 
+                -\text{EIG}(e) \\
+                \text{Cost}(e) \\
+                \text{Complexity}(e)
+                \end{bmatrix}
+                \]
+            </div>
+            <p>
+                The resulting Pareto front provides researchers with a range of experimental options trading off between 
+                information gain and practical constraints.
+            </p>
+        </section>
+
+        <section id="implementation">
+            <h2>Implementation Details</h2>
+            
+            <h3>Computational Methods</h3>
+            <p>
+                The framework employs several advanced computational techniques:
+            </p>
+            <ul>
+                <li><strong>Nested Monte Carlo</strong> for EIG estimation</li>
+                <li><strong>Gaussian Process surrogate models</strong> for efficient optimization</li>
+                <li><strong>Parallel tempering MCMC</strong> for posterior sampling</li>
+                <li><strong>Deterministic uncertainty quantification</strong> using variational inference</li>
+            </ul>
+
+            <h3>Code Example</h3>
+            <pre><code class="python">
+from alphakinetics.active import ExperimentalDesigner
+from alphakinetics.models import ReactionNetwork
+
+# Initialize the experimental designer
+designer = ExperimentalDesigner(
+    objective='mutual_information',
+    batch_size=5,
+    acquisition_strategy='thompson'
+)
+
+# Define the reaction network and prior
+network = ReactionNetwork.from_json('model.json')
+prior = GaussianPrior(mean=theta_prior, cov=Sigma_prior)
+
+# Run the optimal design
+optimal_experiments = designer.optimize(
+    network=network,
+    prior=prior,
+    n_iterations=100,
+    constraints={
+        'temperature': (290, 350),
+        'concentration': (1e-6, 1e-3)
+    }
+)
+            </code></pre>
+        </section>
+
+        <section id="advanced-topics">
+            <h2>Advanced Topics</h2>
+            
+            <h3>Robust Design</h3>
+            <p>
+                We implement robust experimental design strategies to handle:
+            </p>
+            <ul>
+                <li>Model structure uncertainty</li>
+                <li>Parameter prior misspecification</li>
+                <li>Measurement noise heterogeneity</li>
+                <li>Experimental failures and outliers</li>
+            </ul>
+
+            <h3>Adaptive Strategies</h3>
+            <p>
+                The framework supports adaptive experimental strategies that:
+            </p>
+            <ul>
+                <li>Update acquisition functions based on observed data</li>
+                <li>Adjust batch sizes dynamically</li>
+                <li>Modify constraints based on experimental feedback</li>
+                <li>Incorporate expert knowledge through Bayesian updating</li>
+            </ul>
+        </section>
+
+        <section id="references">
+            <h2>References</h2>
+            <ol>
+                <li>Ryan, K. J., et al. (2024). "Information-theoretic experimental design for chemical kinetics"</li>
+                <li>Foster, A., et al. (2023). "Variational Bayesian Optimal Experimental Design"</li>
+                <li>Chaloner, K., Verdinelli, I. (1995). "Bayesian Experimental Design: A Review"</li>
+                <li>Huan, X., Marzouk, Y. M. (2013). "Simulation-based optimal Bayesian experimental design"</li>
+            </ol>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            });
+        });
+    </script>
+    <script defer src="js/main.js"></script>
+</body>
+</html>

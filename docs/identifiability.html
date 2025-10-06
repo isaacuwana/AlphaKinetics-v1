@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameter Identifiability Analysis - AlphaKinetics</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/documentation.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="documentation-container">
+        <header>
+            <h1><i class="fas fa-eye"></i> Parameter Identifiability Analysis</h1>
+            <p class="subtitle">Comprehensive tools for assessing parameter identifiability in chemical reaction networks</p>
+        </header>
+
+        <nav class="doc-nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#theoretical-background">Theoretical Background</a></li>
+                <li><a href="#implementation">Implementation</a></li>
+                <li><a href="#practical-usage">Practical Usage</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#advanced-features">Advanced Features</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>Parameter identifiability analysis in AlphaKinetics combines theoretical rigor with practical applicability to assess whether model parameters can be uniquely determined from experimental data. Our implementation uses multiple complementary approaches:</p>
+                <ul>
+                    <li>Fisher Information Matrix (FIM) analysis for local identifiability</li>
+                    <li>Correlation studies between parameters</li>
+                    <li>Practical identifiability assessment</li>
+                    <li>Confidence region estimation</li>
+                    <li>Structural identifiability analysis</li>
+                </ul>
+            </section>
+
+            <section id="theoretical-background">
+                <h2>Theoretical Background</h2>
+                
+                <h3>Fisher Information Matrix</h3>
+                <p>The Fisher Information Matrix \( F(\theta) \) quantifies the amount of information that observed data carries about unknown parameters \(\theta\). For a chemical reaction system:</p>
+                <div class="math-block">
+                    \[ F_{ij}(\theta) = \sum_{k=1}^{N} \frac{1}{\sigma_k^2} \frac{\partial y_k}{\partial \theta_i} \frac{\partial y_k}{\partial \theta_j} \]
+                </div>
+                <p>where:</p>
+                <ul>
+                    <li>\( y_k \) are model predictions</li>
+                    <li>\( \sigma_k \) are measurement uncertainties</li>
+                    <li>\( \theta_i, \theta_j \) are model parameters</li>
+                </ul>
+
+                <h3>Parameter Correlation</h3>
+                <p>The correlation matrix \( R \) is derived from the FIM:</p>
+                <div class="math-block">
+                    \[ R_{ij} = \frac{F^{-1}_{ij}}{\sqrt{F^{-1}_{ii}F^{-1}_{jj}}} \]
+                </div>
+
+                <h3>Confidence Regions</h3>
+                <p>For a confidence level \(\alpha\), the confidence region is approximated by:</p>
+                <div class="math-block">
+                    \[ (\theta - \hat{\theta})^T F(\hat{\theta}) (\theta - \hat{\theta}) \leq \chi^2_{n,\alpha} \]
+                </div>
+            </section>
+
+            <section id="implementation">
+                <h2>Implementation Details</h2>
+
+                <h3>Core Components</h3>
+                <div class="code-description">
+                    <h4>FisherInformationAnalyzer</h4>
+                    <p>The primary class for identifiability analysis, implementing:</p>
+                    <ul>
+                        <li>Multiple sensitivity computation methods</li>
+                        <li>Robust FIM calculation with numerical conditioning</li>
+                        <li>Comprehensive structural and practical identifiability analysis</li>
+                        <li>Parameter ranking and correlation analysis</li>
+                    </ul>
+
+                    <h4>Parameter Classification</h4>
+                    <p>Parameters are classified into three categories based on their identifiability:</p>
+                    <ul>
+                        <li><strong>Well-identified</strong>: Relative uncertainty < 10%</li>
+                        <li><strong>Poorly-identified</strong>: Relative uncertainty between 10% and threshold</li>
+                        <li><strong>Unidentifiable</strong>: Relative uncertainty > threshold or numerical issues</li>
+                    </ul>
+                </div>
+
+                <h3>Numerical Methods</h3>
+                <ul>
+                    <li><strong>Sensitivity Calculation</strong>: 
+                        <ul>
+                            <li>Finite differences with adaptive step size</li>
+                            <li>Complex step method for improved accuracy</li>
+                            <li>Automatic method selection based on problem characteristics</li>
+                        </ul>
+                    </li>
+                    <li><strong>FIM Computation</strong>:
+                        <ul>
+                            <li>Robust matrix conditioning</li>
+                            <li>Pseudo-inverse for near-singular matrices</li>
+                            <li>Eigenvalue analysis for rank estimation</li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+
+            <section id="practical-usage">
+                <h2>Practical Usage</h2>
+
+                <h3>Basic Analysis</h3>
+                <pre class="code-block">
+from alphakinetics.identifiability import FisherInformationAnalyzer
+
+# Create analyzer instance
+analyzer = FisherInformationAnalyzer()
+
+# Perform analysis
+result = analyzer.analyze_parameter_identifiability(
+    network=reaction_network,
+    parameters=current_parameters,
+    data=experimental_data,
+    uncertainty_threshold=10.0,
+    confidence_level=0.95
+)
+                </pre>
+
+                <h3>Understanding Results</h3>
+                <p>The analysis provides:</p>
+                <ul>
+                    <li>Parameter classifications (well/poorly/un-identifiable)</li>
+                    <li>Confidence intervals for each parameter</li>
+                    <li>Correlation matrix and eigenvalue analysis</li>
+                    <li>Recommendations for improving identifiability</li>
+                </ul>
+
+                <h3>Common Issues and Solutions</h3>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Issue</th>
+                            <th>Possible Causes</th>
+                            <th>Solutions</th>
+                        </tr>
+                        <tr>
+                            <td>High Parameter Correlation</td>
+                            <td>
+                                <ul>
+                                    <li>Overparameterization</li>
+                                    <li>Insufficient data</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul>
+                                    <li>Parameter reparameterization</li>
+                                    <li>Additional experiments</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Singular FIM</td>
+                            <td>
+                                <ul>
+                                    <li>Structural non-identifiability</li>
+                                    <li>Numerical issues</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul>
+                                    <li>Model simplification</li>
+                                    <li>Improved numerical methods</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <section id="examples">
+                <h2>Examples</h2>
+
+                <h3>Simple Chain Reaction</h3>
+                <p>Analysis of a basic A → B → C reaction chain demonstrating:</p>
+                <ul>
+                    <li>Parameter correlation between rate constants</li>
+                    <li>Effect of measurement timing on identifiability</li>
+                    <li>Confidence region visualization</li>
+                </ul>
+
+                <h3>Complex Network</h3>
+                <p>Analysis of a branched reaction network showing:</p>
+                <ul>
+                    <li>Structural identifiability issues</li>
+                    <li>Parameter subset selection</li>
+                    <li>Experimental design recommendations</li>
+                </ul>
+            </section>
+
+            <section id="advanced-features">
+                <h2>Advanced Features</h2>
+
+                <h3>Batch Processing</h3>
+                <p>For analyzing multiple parameter sets or experimental conditions:</p>
+                <pre class="code-block">
+results = batch_identifiability_analysis(
+    networks=network_list,
+    parameters_list=param_list,
+    data_list=data_list,
+    parallel=True
+)
+                </pre>
+
+                <h3>Integration with Experimental Design</h3>
+                <p>Use identifiability analysis to guide experiment selection:</p>
+                <ul>
+                    <li>D-optimal design for maximum information gain</li>
+                    <li>Focus on poorly identified parameters</li>
+                    <li>Multi-objective optimization</li>
+                </ul>
+
+                <h3>Custom Analysis Methods</h3>
+                <p>Extend the base functionality with:</p>
+                <ul>
+                    <li>Custom sensitivity calculation methods</li>
+                    <li>Alternative confidence region estimators</li>
+                    <li>Problem-specific identifiability criteria</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>For more detailed information, consult the <a href="#">API Reference</a> or <a href="#">User Manual</a>.</p>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

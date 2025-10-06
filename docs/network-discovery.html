@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Network Discovery - AlphaKinetics Documentation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/documentation.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <header>
+    <script>
+        if (typeof window !== 'undefined' && typeof window.CONFIG === 'undefined') {
+            window.CONFIG = { API_BASE_URL: window.location.origin, DEFAULT_VALUES: { MIN_CONC: 0.01, MAX_CONC: 10.0, MAX_TIME: 100 } };
+        }
+    </script>
+        <h1>AI-Powered Network Discovery</h1>
+        <p class="subtitle">Grammar-based network enumeration with machine learning-driven plausibility scoring</p>
+    </header>
+
+    <nav class="doc-nav">
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#theory">Theoretical Background</a></li>
+            <li><a href="#implementation">Implementation</a></li>
+            <li><a href="#usage">Usage Guide</a></li>
+            <li><a href="#examples">Examples</a></li>
+        </ul>
+    </nav>
+
+    <main class="documentation">
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>The AI-Powered Network Discovery module in AlphaKinetics combines grammar-based enumeration with machine learning to efficiently search the vast space of possible reaction networks. This approach enables:</p>
+            <ul>
+                <li>Systematic exploration of mechanistically plausible reaction networks</li>
+                <li>ML-driven scoring of candidate networks based on physicochemical principles</li>
+                <li>Efficient pruning of the search space using learned heuristics</li>
+                <li>Automated discovery of novel reaction mechanisms</li>
+            </ul>
+        </section>
+
+        <section id="theory">
+            <h2>Theoretical Background</h2>
+            <h3>Grammar-Based Network Generation</h3>
+            <p>The network generation process follows a formal chemical reaction grammar that ensures:</p>
+            <ul>
+                <li>Mass conservation in all reactions</li>
+                <li>Thermodynamic consistency</li>
+                <li>Adherence to basic chemical principles</li>
+            </ul>
+
+            <div class="math-block">
+                <p>The grammar rules can be expressed as production rules:</p>
+                \[
+                \begin{align*}
+                S &\rightarrow \text{Network} \\
+                \text{Network} &\rightarrow \text{Species } | \text{ Reactions} \\
+                \text{Reaction} &\rightarrow \text{Reactants } \rightarrow \text{ Products}
+                \end{align*}
+                \]
+            </div>
+
+            <h3>Machine Learning Scoring</h3>
+            <p>Candidate networks are scored using multiple criteria:</p>
+            <ul>
+                <li>Structural plausibility based on known chemical patterns</li>
+                <li>Dynamic behavior compatibility with experimental data</li>
+                <li>Complexity penalties to favor simpler explanations</li>
+            </ul>
+        </section>
+
+        <section id="implementation">
+            <h2>Implementation Details</h2>
+            <h3>Core Components</h3>
+            <div class="code-block">
+                <pre><code>from alphakinetics.search import (
+    NetworkSearchStrategy,
+    NetworkCandidate,
+    enumerate_reaction_networks,
+    GraphGenerationStrategy
+)</code></pre>
+            </div>
+
+            <h3>Network Search Strategy</h3>
+            <p>The search process combines:</p>
+            <ul>
+                <li>Breadth-first enumeration of network topologies</li>
+                <li>Neural network-based scoring of candidates</li>
+                <li>Beam search with learned pruning criteria</li>
+            </ul>
+
+            <div class="algorithm-block">
+                <h4>Search Algorithm</h4>
+                <ol>
+                    <li>Initialize candidate pool with minimal networks</li>
+                    <li>For each iteration:
+                        <ul>
+                            <li>Generate network variations using grammar rules</li>
+                            <li>Score candidates using ML model</li>
+                            <li>Prune unlikely candidates</li>
+                            <li>Add promising candidates to exploration queue</li>
+                        </ul>
+                    </li>
+                    <li>Return top-ranked networks</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="usage">
+            <h2>Usage Guide</h2>
+            <h3>Command Line Interface</h3>
+            <div class="code-block">
+                <pre><code>alphakinetics-search --n-species 3 --max-reactions 5</code></pre>
+            </div>
+
+            <h3>Python API</h3>
+            <div class="code-block">
+                <pre><code>from alphakinetics.search import enumerate_reaction_networks
+
+networks = enumerate_reaction_networks(
+    n_species=3,
+    max_reactions=5,
+    strategy=NetworkSearchStrategy.BEAM_SEARCH
+)</code></pre>
+            </div>
+
+            <h3>Configuration Options</h3>
+            <ul>
+                <li><code>n_species</code>: Number of chemical species</li>
+                <li><code>max_reactions</code>: Maximum number of reactions</li>
+                <li><code>strategy</code>: Search strategy (BEAM_SEARCH, EXHAUSTIVE, etc.)</li>
+                <li><code>scoring_model</code>: ML model for candidate scoring</li>
+            </ul>
+        </section>
+
+        <section id="examples">
+            <h2>Examples</h2>
+            <h3>Simple Chain Discovery</h3>
+            <p>Discover a simple reaction chain from time-series data:</p>
+            <div class="code-block">
+                <pre><code>from alphakinetics.search import NetworkSearchStrategy
+from alphakinetics.data import ExperimentalData
+
+# Load experimental data
+data = ExperimentalData.from_csv("experiment.csv")
+
+# Search for networks
+networks = enumerate_reaction_networks(
+    n_species=data.n_species,
+    experimental_data=data,
+    strategy=NetworkSearchStrategy.BEAM_SEARCH
+)
+
+# Get top predictions
+top_networks = networks.get_top_candidates(n=5)</code></pre>
+            </div>
+
+            <h3>Visualization</h3>
+            <p>Visualize discovered networks and their scores:</p>
+            <div class="code-block">
+                <pre><code>from alphakinetics.utils import plot_network_topology
+
+for network in top_networks:
+    plot_network_topology(network)
+    print(f"Score: {network.score}")</code></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>AlphaKinetics Documentation | <a href="index.html">Back to Home</a></p>
+    </footer>
+    <script defer src="js/main.js"></script>
+</body>
+</html>
